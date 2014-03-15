@@ -4,6 +4,6 @@ close all
 
 [x, fs, Nbits] = wavread('robinhood.wav');
 
-cwtS1 = cwtft(x(:,1),'plot');
+X = cwtft(x(:,1),'scales',1:32,'wavelet','mexh');
 
-YRDen = icwtlin(cwtS1,'plot');
+Xrec = icwtlin(X);
