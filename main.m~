@@ -27,7 +27,7 @@ sigma = var(noise); % variance of the pseudo random noise
 
 % Wavelets paramter
 scale = (256); % maximum wavelets scale
-waveletType = 'mexh';
+waveletType = 'haar';
 
 % Block size;
 height = 8;
@@ -39,10 +39,9 @@ y = x + noise;
 %% going in wavelts domain (Haar)
 % X = cwt(x,1:scale,waveletType);
 % Y = cwt(y,1:scale,waveletType);
-XStruct = cwtft(x,'scales',1:scale,'wavelet',waveletType);
-YStruct = cwtft(y,'scales',1:scale,'wavelet',waveletType);
-X = getfield(XStruct, 'cfs');
-Y = getfield(XStruct, 'cfs');
+XStruct = cwtft(x,1:scale,waveletType);
+YStruct = cwtft(y,1:scale,waveletType);
+X = getfield(XStruct, 'cfs')
 %% Computing the blocked signal
 Xi = blocking(X, height, width);
 Yi = blocking(Y, height, width);
@@ -57,8 +56,5 @@ Xhi = Yi.*(a*ones(1,64)); % denoised blocked coefficient
 SY = size(Y);
 Xh = deblocking(Xhi,height, width, SY(1), SY(2));
 
-%% Try to return in time domain after fourier transform
-YStruct = setfield(YStruct,'cfs',Xh);
-xh = icwtft(YStruct);
 % reproducing the results
 % sound(y,fs)
