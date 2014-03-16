@@ -7,7 +7,7 @@ clc
 %% Defining parameter
 
 % Reading audio (wav file)
-[x, fs, Nbits] = wavread('/Users/cardo89/Dropbox/Universita/Magistrale/Advanced methods for information representation/Progetto/ReferenceSoftware/moz1_11kHz.wav');
+[x, fs, Nbits] = wavread('shine.wav');
 
 x = x'; % making the transpose to use only row vector
 % Making the signal length a power of two
