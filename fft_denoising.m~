@@ -38,17 +38,7 @@ f = linspace(-0.5,0.5,length(y));
 subplot(2,1,1), plot(f,fftshift(DSP_X));
 subplot(2,1,2), plot(f,fftshift(DSP_Y),'r');
 
-% normalizing dsp between [0;1]
-DSP_Y = (DSP_Y - min(DSP_Y))/(max(DSP_Y) -min(DSP_Y));
-
-% Simple method to compute threshold
-mean_value = mean(abs(y));
-threshold  = 0.01*mean_value; % Fine-tune this
-
 Xh = Y;
-Xh(DSP_Y < sigma) = 0;
-
-% going back in time domain
-xh = ifft(Xh);
+Y[DSP_Y < sigma] = 0;
 
 
