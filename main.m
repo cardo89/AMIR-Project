@@ -44,8 +44,8 @@ YStruct = cwtft(y,'scales',1:scale,'wavelet',waveletType);
 X = getfield(XStruct, 'cfs');
 Y = getfield(XStruct, 'cfs');
 %% Computing the blocked signal
-Xi = blocking(X, height, width);
-Yi = blocking(Y, height, width);
+Xi = fastBlocking(X, height, width);
+Yi = fastBlocking(Y, height, width);
 %% comouting the a priori SNR
 aSNR = mean(Xi.^2,2)/sigma;
 
@@ -55,7 +55,7 @@ a = 1 - (1./(aSNR +1)); % Computing the denoising coefficients
 Xhi = Yi.*(a*ones(1,64)); % denoised blocked coefficient
 
 SY = size(Y);
-Xh = deblocking(Xhi,height, width, SY(1), SY(2));
+Xh = fastDeblocking(Xhi,height, width, SY(1), SY(2));
 
 %% Try to return in time domain after fourier transform
 YStruct = setfield(YStruct,'cfs',Xh);
