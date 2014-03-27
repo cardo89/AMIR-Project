@@ -1,5 +1,5 @@
 function [ Xi ] = blocking(X,height,width)
-%blocking divide the wavelts transform in block usefull to compute.....
+%%blocking divide the wavelts transform in block usefull to compute.....
 %   X, height and width must be power of two
 
 % Extracting the size of the input matrix
