@@ -31,7 +31,7 @@ y = x + noise';
 %aSNR = Px/Pnoise; % apriori SNR
 
 %% Computing spectrogram
-w = hanning(N); % STFT window
+%w = hanning(N); % STFT window
 
 %[X F T] = spectrogram(x,w,N/2,N,fs);
 %Y = spectrogram(y,w,N/2,N,fs);
@@ -48,7 +48,8 @@ SX = size(X); % extracting the size of the original signal before blocking
 
 %% Real signa deoinsing step
 %aSNR = mean(Xi.^2,2)/Pnoise;
-aSNR = mean(Xi.^2,2)./mean(NOISEi.^2,2); % Compiting aSNR for each block
+aSNR = mean(abs(Xi).^2,2)./mean(abs(NOISEi).^2,2); % Compiting aSNR for each block
+%aSNR = mean((Xi).^2,2)./mean((NOISEi).^2,2); % Compiting aSNR for each block
 a = 1 - (1./(aSNR +1)); % Computing the denoising coefficients
 
 Xhi = Yi.*(a*ones(1,height*width)); % denoised blocked coefficient
@@ -58,3 +59,6 @@ Xh = fastDeblocking(Xhi,height, width, NBX,SX);
 
 %% Going back in time domain
 xh = ISTFT(Xh,((512/fs)*1000),1,fs,length(x));
+
+%% Writing result on wav files
+%wavwrite(xh,fs,'shine_stft_denoise.wav');
