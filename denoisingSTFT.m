@@ -44,12 +44,11 @@ SX = size(X); % extracting the size of the original signal before blocking
 %% Computing the blocked signal
 [Yi, NBY] = fastBlocking(Y, height, width);
 [Xi, NBX]= fastBlocking(X, height, width);
-[NOISEi, NBnoise]= fastBlocking(X, height, width);
+[NOISEi, NBnoise]= fastBlocking(NOISE, height, width);
 
 %% Real signa deoinsing step
 %aSNR = mean(Xi.^2,2)/Pnoise;
-sigma_i = mean(NOISEi.^2,2);
-aSNR = mean(Xi.^2,2)/Pnoise;
+aSNR = mean(Xi.^2,2)./mean(NOISEi.^2,2); % Compiting aSNR for each block
 a = 1 - (1./(aSNR +1)); % Computing the denoising coefficients
 
 Xhi = Yi.*(a*ones(1,height*width)); % denoised blocked coefficient
