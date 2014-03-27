@@ -1,4 +1,4 @@
-function [ Xi, NB] = fastBlocking(X,height,width)
+function [ Xi ] = fastBlocking(X,height,width)
 %blocking divide the wavelts transform in block usefull to compute.....
 %   X, height and width must be power of two
 
@@ -6,11 +6,8 @@ function [ Xi, NB] = fastBlocking(X,height,width)
 SX = size(X);
 
 % checking if the dimension is a multiple of heught and widt
-X = [X ; zeros(height-mod(SX(1),height),SX(2))];
-SX = size(X);
-X = [X zeros(SX(1), width-mod(SX(2),width))];
-
-SX = size(X);
+X = [X zeros(height-mod(SX(1),height),1)];
+X = [X zeros(1, height-mod(SX(1),height))];
 % Computing block number
 NB = [SX(1)/height SX(2)/width];
 
@@ -18,12 +15,12 @@ NB = [SX(1)/height SX(2)/width];
 B = mat2cell(X, ones(1,NB(1))*height, ones(1,NB(2))*width);
 
 %put all blocks in one column
-B2 = reshape(B.',NB(1)*NB(2),1);
+B2 = reshape(B',NB(1)*NB(2),1);
 
 %come back to the matrix
 Xi2=cell2mat(B2);
 
 %put all line of a block in one line
-Xi = reshape(Xi2.',height*width,NB(1)*NB(2)).';
+Xi = reshape(Xi2',height*width,NB(1)*NB(2))';
 
 end
