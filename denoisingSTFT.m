@@ -37,14 +37,18 @@ w = hanning(N); % STFT window
 %Y = spectrogram(y,w,N/2,N,fs);
 Y = STFT(y,((512/fs)*1000),1,fs);
 X = STFT(x,((512/fs)*1000),1,fs);
+NOISE = STFT(noise,((512/fs)*1000),1,fs);
 SX = size(X); % extracting the size of the original signal before blocking
 %spectrogram(y,w,N/2,N,fs,'yaxis');
 
 %% Computing the blocked signal
 [Yi, NBY] = fastBlocking(Y, height, width);
 [Xi, NBX]= fastBlocking(X, height, width);
+[NOISEi, NBnoise]= fastBlocking(X, height, width);
 
 %% Real signa deoinsing step
+%aSNR = mean(Xi.^2,2)/Pnoise;
+sigma_i = mean(NOISEi.^2,2);
 aSNR = mean(Xi.^2,2)/Pnoise;
 a = 1 - (1./(aSNR +1)); % Computing the denoising coefficients
 

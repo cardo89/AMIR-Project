@@ -37,6 +37,8 @@ w = hanning(N); % STFT window
 %Y = spectrogram(y,w,N/2,N,fs);
 Y = STFT(y,((512/fs)*1000),1,fs);
 X = STFT(x,((512/fs)*1000),1,fs);
+NOISE = STFT(noise,((512/fs)*1000),1,fs);
+SX = size(X); % extracting the size of the original signal before blocking
 %spectrogram(y,w,N/2,N,fs,'yaxis');
 
 %% Computing the blocked signal
@@ -50,7 +52,7 @@ a = 1 - (1./(aSNR +1)); % Computing the denoising coefficients
 Xhi = Yi.*(a*ones(1,height*width)); % denoised blocked coefficient
 
 SY = size(Y);
-Xh = fastDeblocking(Xhi,height, width, NBX);
+Xh = fastDeblocking(Xhi,height, width, NBX,SX);
 
 %% Going back in time domain
-x = ISTFT(Xh,((512/fs)*1000));
+xh = ISTFT(Xh,((512/fs)*1000),1,fs,length(x));
