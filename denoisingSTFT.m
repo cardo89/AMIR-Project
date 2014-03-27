@@ -5,7 +5,7 @@ close all
 clc
 
 %% Defining parameter
-% STFT window size
+% STFT window size in sample
 N = 512;
 
 % Block size;
@@ -15,6 +15,9 @@ width = 8;
 %% Computing input signal
 % Reading audio (wav file)
 [x, fs, Nbits] = wavread('shine.wav');
+
+% obtaining windows size in ms
+Nms = ((N/fs)*1000);
 
 % computing the power of clean signal
 Px = mean(x.^2);
@@ -35,9 +38,9 @@ y = x + noise';
 
 %[X F T] = spectrogram(x,w,N/2,N,fs);
 %Y = spectrogram(y,w,N/2,N,fs);
-Y = STFT(y,((512/fs)*1000),1,fs);
-X = STFT(x,((512/fs)*1000),1,fs);
-NOISE = STFT(noise,((512/fs)*1000),1,fs);
+Y = STFT(y,Nms,1,fs);
+X = STFT(x,Nms,1,fs);
+NOISE = STFT(noise,Nms,1,fs);
 SX = size(X); % extracting the size of the original signal before blocking
 %spectrogram(y,w,N/2,N,fs,'yaxis');
 
@@ -48,6 +51,9 @@ SX = size(X); % extracting the size of the original signal before blocking
 
 %% Real signa deoinsing step
 %aSNR = mean(Xi.^2,2)/Pnoise;
+% Pnoise = mean(abs(NOISEi).^2,2);
+% Pnoise(find(mean(abs(NOISEi).^2,2) == 0)) = 10^-50;
+% aSNR = mean(abs(Xi).^2,2)./Pnoise;
 aSNR = mean(abs(Xi).^2,2)./mean(abs(NOISEi).^2,2); % Compiting aSNR for each block
 %aSNR = mean((Xi).^2,2)./mean((NOISEi).^2,2); % Compiting aSNR for each block
 a = 1 - (1./(aSNR +1)); % Computing the denoising coefficients
@@ -58,7 +64,7 @@ SY = size(Y);
 Xh = fastDeblocking(Xhi,height, width, NBX,SX);
 
 %% Going back in time domain
-xh = ISTFT(Xh,((512/fs)*1000),1,fs,length(x));
+xh = ISTFT(Xh,Nms,1,fs,length(x));
 
 %% Writing result on wav files
 %wavwrite(xh,fs,'shine_stft_denoise.wav');
