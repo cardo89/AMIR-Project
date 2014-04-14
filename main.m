@@ -5,60 +5,104 @@ close all
 clc
 
 %% Defining parameter
+% Decomposition level
+N = 5;
+% Wavelets type
+wType = 'db8';
 
+% Number of neighbourhood to use for the estimation of sigma
+M = 7;
+
+% SNR of noisy signal
+%SNR = 30; % linear scale (3dB)
+
+%% Loading file
 % Reading audio (wav file)
 [x, fs, Nbits] = wavread('shine.wav');
-
-x = x'; % making the transpose to use only row vector
-% Making the signal length a power of two
-x = [x zeros(1, 2^(ceil(log2(length(x)))) - length(x))];
+%[x, fs, Nbits] = wavread('/Users/cardo89/Downloads/Russians.wav');
+%[x, fs, Nbits] = wavread('/Users/cardo89/Downloads/vasco1.wav');
+x = x(:,1); % making the transpose to use only row vector
 
 % computing the power of clean signal
-Px = sum(sum(x.^2));
+Px = mean(x.^2);
 
 % generating AWGN
-noise = (1/sqrt(0.5*Px))*rand(1,length(x));
-
-% Rescaling the noise to obtain the desire aSNR
-Pnoise = sum(sum(noise.^2));
-
-% Computing the apriori SNR
-sigma = var(noise); % variance of the pseudo random noise
-
-% Wavelets paramter
-scale = (256); % maximum wavelets scale
-waveletType = 'mexh';
-
-% Block size;
-height = 8;
-width = 8;
+noiseMean = 0;
+devstd = 0.01:0.01:0.1;
+for i = 1:length(devstd)
+noiseStandardDeviation = devstd(i) %sqrt(Px/SNR);
+noise = noiseMean + noiseStandardDeviation.*randn(size(x));
+Pnoise = mean(noise.^2)
+%realSNR = 10*log10(Px/Pnoise);
 
 %% dirty the signal
 y = x + noise;
+% Computing PSNR of noisy signal
+MSE = (sum((y - x).^2))/length(x);
+PSNR(i) = 10*log10(1./MSE)
+%% Denoising
+noiseStandardDeviationEstimation(i) = stimaSigma(y,N,wType);
+[xhML_noiseEst, XhML, Y, L] = denoising( y,noiseStandardDeviationEstimation(i),N,M,wType );
+[xhMAP_noiseEst, XhMAP, Y, L] = denoisingMAP( y,noiseStandardDeviationEstimation(i),N,M,wType );
+[xhML, XhML, Y, L] = denoising( y,noiseStandardDeviation,N,M,wType );
+[xhMAP, XhMAP, Y, L] = denoisingMAP( y,noiseStandardDeviation,N,M,wType );
+%% Computing PSNR after denoising
+% PSNR with real sigma
+MSE = (sum((xhML.' - x).^2))/length(x);
+PSNR_ML_(i) = 10*log10(1./MSE)
 
-%% going in wavelts domain (Haar)
-% X = cwt(x,1:scale,waveletType);
-% Y = cwt(y,1:scale,waveletType);
-XStruct = cwtft(x,'scales',1:scale,'wavelet',waveletType);
-YStruct = cwtft(y,'scales',1:scale,'wavelet',waveletType);
-X = getfield(XStruct, 'cfs');
-Y = getfield(XStruct, 'cfs');
-%% Computing the blocked signal
-Xi = fastBlocking(X, height, width);
-Yi = fastBlocking(Y, height, width);
-%% comouting the a priori SNR
-aSNR = mean(Xi.^2,2)/sigma;
+MSE = (sum((xhMAP.' - x).^2))/length(x);
+PSNR_MAP(i) = 10*log10(1./MSE)
 
-%% Real signa deoinsing step
-a = 1 - (1./(aSNR +1)); % Computing the denoising coefficients
 
-Xhi = Yi.*(a*ones(1,64)); % denoised blocked coefficient
+% PSNR with estimated sigma
+MSE = (sum((xhML_noiseEst.' - x).^2))/length(x);
+PSNR_ML_noiseEst(i) = 10*log10(1./MSE)
 
-SY = size(Y);
-Xh = fastDeblocking(Xhi,height, width, SY(1), SY(2));
+MSE = (sum((xhMAP_noiseEst.' - x).^2))/length(x);
+PSNR_MAP_noiseEst(i) = 10*log10(1./MSE)
+end
 
-%% Try to return in time domain after fourier transform
-YStruct = setfield(YStruct,'cfs',Xh);
-xh = icwtft(YStruct);
-% reproducing the results
-% sound(y,fs)
+%% Showing results
+% plotting signal
+% figure
+% plot(linspace(0,length(x)/fs,length(x)),x), title('original signal'), grid on, axis tight;
+% figure
+% plot(linspace(0,length(x)/fs,length(x)),y), title('noisy signal'), grid on, axis tight;
+% figure
+% plot(linspace(0,length(x)/fs,length(x)),xh), title('denoised signal'), grid on, axis tight;
+% 
+% % Plotting wavlets tranform
+% figure
+% s=0;
+% for k=1:length(L)-1
+%     s=s+L(k);
+%     yl=floor(min(Y)):ceil(max(Y));
+%     xl2(k,:)=ones(size(yl)).*s;
+%     plot(xl2,yl,'r')
+%     hold on
+% end
+% plot(Y), title('DWT of noisy signal'), grid on, axis tight;
+% figure
+% s=0;
+% for k=1:length(L)-1
+%     s=s+L(k);
+%     yl=floor(min(Xh)):ceil(max(Xh));
+%     xl2(k,:)=ones(size(yl)).*s;
+%     plot(xl2,yl,'r')
+%     hold on
+% end
+% plot(Xh), title('DWT of denoised signal'), grid on, axis tight;
+% 
+% % Plotting histogram (pdf) of wavelets coefficients
+% figure
+% hist(Y,1000), title('noisy signal'), grid on, axis tight;
+% figure
+% hist(Xh,1000), title('denoised signal'), grid on, axis tight;
+% figure
+% hist(wavedec(x,N,wType),1000), title('original signal'), grid on, axis tight;
+
+%% Writing resulta
+% wavwrite(xhML,fs,'shine_denoisedML004.wav')
+% wavwrite(xhMAP,fs,'shine_denoisedMAP004.wav');
+% wavwrite(y,fs,'shine_noisy004.wav');

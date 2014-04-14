@@ -1,0 +1,86 @@
+function [ xh, Xh, Y,L ] = denoisingMAP( y,sigmaN,N,M,wType )
+
+[xh, Xh1, Y, L] = denoising( y,sigmaN,N,M,wType );
+[Y, L]= wavedec(y,N,wType);
+YL = appcoef(Y,L,wType);
+[YH, YLH, YLHH, YLHHH, YLHHHH] = detcoef(Y,L,1:N);
+
+YL = [zeros((M-1)/2,1); YL; zeros((M-1)/2,1)];
+YH = [zeros((M-1)/2,1); YH; zeros((M-1)/2,1)];
+YLH = [zeros((M-1)/2,1); YLH; zeros((M-1)/2,1)];
+YLHH = [zeros((M-1)/2,1); YLHH; zeros((M-1)/2,1)];
+YLHHH = [zeros((M-1)/2,1); YLHHH; zeros((M-1)/2,1)];
+YLHHHH = [zeros((M-1)/2,1); YLHHHH; zeros((M-1)/2,1)];
+
+XhL1 = appcoef(Xh1,L,wType);
+[XhH1, XhLH1, XhLHH1, XhLHHH1, XhLHHHH1] = detcoef(Xh1,L,1:N);
+Xh1 = [XhL1 XhLHHHH1 XhLHHH1 XhLHH1 XhLH1 XhH1];
+%lambda = var(Xh1)^-1;
+
+%[ sigmaL, sigmaH, sigmaLH, sigmaLHH, sigmaLHHH, sigmaLHHHH ] = stimaVarML(Y,L,M,sigmaN);
+
+lambda = sqrt(var(XhL1))^-1
+
+for k = (M-1)/2 + 1:length(YL)-(M-1)/2
+    %boh = ((M/(4*sigmaL(k)^-1))*(-1 + sqrt( 1+ (8*sigmaL(k)^-1/M^2)*sum(YL(k - (M-1)/2:k + (M-1)/2).^2)))) - sigmaN.^2;
+    boh = ((M/(4*lambda))*(-1 + sqrt( 1+ (8*lambda/M^2)*sum(YL(k - (M-1)/2:k + (M-1)/2).^2)))) - sigmaN.^2;
+    sigma = max(0,boh);
+    XhL(k) = (sigma/(sigma + sigmaN^2))*YL(k);
+end
+XhL =XhL((M-1)/2 +1:end);
+%clear lambda;
+
+lambda = sqrt(var(XhH1))^-1
+for k = (M-1)/2 + 1:length(YH)-(M-1)/2
+    %boh = ((M/(4*sigmaH(k)^-1))*(-1 + sqrt( 1+ (8*sigmaH(k)^-1/M^2)*sum(YH(k - (M-1)/2:k + (M-1)/2).^2)))) - sigmaN.^2;
+    boh = ((M/(4*lambda))*(-1 + sqrt( 1+ (8*lambda/M^2)*sum(YH(k - (M-1)/2:k + (M-1)/2).^2)))) - sigmaN.^2;
+    sigma = max(0,boh);
+    XhH(k) = (sigma/(sigma + sigmaN^2))*YH(k);
+end
+XhH =XhH((M-1)/2 +1:end);
+%clear lambda;
+
+lambda = sqrt(var(XhLH1))^-1
+for k = (M-1)/2 + 1:length(YLH)-(M-1)/2
+    %boh = ((M/(4*sigmaLH(k)^-1))*(-1 + sqrt( 1+ (8*sigmaLH(k)^-1/M^2)*sum(YLH(k - (M-1)/2:k + (M-1)/2).^2)))) - sigmaN.^2;
+    boh = ((M/(4*lambda))*(-1 + sqrt( 1+ (8*lambda/M^2)*sum(YLH(k - (M-1)/2:k + (M-1)/2).^2)))) - sigmaN.^2;
+    sigma = max(0,boh);
+    XhLH(k) = (sigma/(sigma + sigmaN^2))*YLH(k);
+end
+XhLH = XhLH((M-1)/2 +1:end);
+%clear lambda;
+
+lambda = sqrt(var(XhLHH1))^-1
+for k = (M-1)/2 + 1:length(YLHH)-(M-1)/2
+    %boh = ((M/(4*sigmaLHH(k)^-1))*(-1 + sqrt( 1+ (8*sigmaLHH(k)^-1/M^2)*sum(YLHH(k - (M-1)/2:k + (M-1)/2).^2)))) - sigmaN.^2;
+    boh = ((M/(4*lambda))*(-1 + sqrt( 1+ (8*lambda/M^2)*sum(YLHH(k - (M-1)/2:k + (M-1)/2).^2)))) - sigmaN.^2;
+    sigma = max(0,boh);
+    XhLHH(k) = (sigma/(sigma + sigmaN^2))*YLHH(k);
+end
+XhLHH =XhLHH((M-1)/2 +1:end);
+%clear lambda;
+
+lambda = sqrt(var(XhLHHH1))^-1
+for k = (M-1)/2 + 1:length(YLHHH)-(M-1)/2
+    %boh = ((M/(4*sigmaLHHH(k)^-1))*(-1 + sqrt( 1+ (8*sigmaLHHH(k)^-1/M^2)*sum(YLHHH(k - (M-1)/2:k + (M-1)/2).^2)))) - sigmaN.^2;
+    boh = ((M/(4*lambda))*(-1 + sqrt( 1+ (8*lambda/M^2)*sum(YLHHH(k - (M-1)/2:k + (M-1)/2).^2)))) - sigmaN.^2;
+    sigma = max(0,boh);
+    XhLHHH(k) = (sigma/(sigma + sigmaN^2))*YLHHH(k);
+end
+XhLHHH =XhLHHH((M-1)/2 +1:end);
+%clear lambda;
+
+lambda = sqrt(var(XhLHHHH1))^-1
+for k = (M-1)/2 + 1:length(YLHHHH)-(M-1)/2
+    %boh = ((M/(4*sigmaLHHHH(k)^-1))*(-1 + sqrt( 1+ (8*sigmaLHHHH(k)^-1/M^2)*sum(YLHHHH(k - (M-1)/2:k + (M-1)/2).^2)))) - sigmaN.^2;
+    boh = ((M/(4*lambda))*(-1 + sqrt( 1+ (8*lambda/M^2)*sum(YLHHHH(k - (M-1)/2:k + (M-1)/2).^2)))) - sigmaN.^2;
+    sigma = max(0,boh);
+    XhLHHHH(k) = (sigma/(sigma + sigmaN^2))*YLHHHH(k);
+end
+XhLHHHH =XhLHHHH((M-1)/2 +1:end);
+%clear lambda;
+
+Xh = [XhL XhLHHHH XhLHHH XhLHH XhLH XhH];
+
+xh = waverec(Xh,L,wType);
+
